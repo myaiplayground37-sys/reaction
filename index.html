@@ -84,6 +84,14 @@
             color: #999;
             font-size: 14px;
         }
+        
+        #maxScore {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -96,8 +104,10 @@
         <div id="target">Target: <span id="targetColor">BLUE</span></div>
     </div>
     
+    <div id="maxScore">Max Score: <span id="maxScoreValue">0</span></div>
+    
     <div id="instructions">
-        <p>← → or A/D to move | R to restart</p>
+        <p>← → or A/D to move | R to restart | M to reset max score</p>
     </div>
     
     <div id="gameOverScreen">
@@ -162,6 +172,7 @@
         // GAME STATE
         // ============================================
         let score = 0;
+        let maxScore = 0;
         let gameOver = false;
         const colors = {
             RED: { value: 0xff4444, name: 'RED' },
@@ -234,6 +245,7 @@
                     if (cube.colorIndex === targetColorIndex) {
                         score++;
                         updateScore();
+                        playCatchSound();
                         changeTargetColor();
                     } else {
                         // Wrong color caught - game over!
@@ -248,6 +260,16 @@
         // ============================================
         function updateScore() {
             document.getElementById('scoreValue').textContent = score;
+            // Update max score if current score is higher
+            if (score > maxScore) {
+                maxScore = score;
+                document.getElementById('maxScoreValue').textContent = maxScore;
+            }
+        }
+        
+        function resetMaxScore() {
+            maxScore = 0;
+            document.getElementById('maxScoreValue').textContent = '0';
         }
         
         function changeTargetColor() {
@@ -259,12 +281,16 @@
             // Update the target display color
             const targetElement = document.getElementById('target');
             targetElement.style.backgroundColor = '#' + targetColor.value.toString(16).padStart(6, '0');
+            
+            // Change platform color to match target color
+            platformMaterial.color.setHex(targetColor.value);
         }
         
         function endGame() {
             gameOver = true;
             document.getElementById('gameOverScreen').style.display = 'block';
             document.getElementById('finalScore').textContent = 'Final Score: ' + score;
+            playGameOverSound();
         }
         
         function restartGame() {
@@ -297,6 +323,49 @@
         }
         
         // ============================================
+        // SOUND EFFECTS
+        // ============================================
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playCatchSound() {
+            // Create a pleasant "ding" sound for successful catch
+            const now = audioContext.currentTime;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, now);
+            oscillator.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.3, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            
+            oscillator.start(now);
+            oscillator.stop(now + 0.15);
+        }
+        
+        function playGameOverSound() {
+            // Create a "buzz" sound for game over
+            const now = audioContext.currentTime;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(200, now);
+            oscillator.frequency.setValueAtTime(150, now + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.3, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            
+            oscillator.start(now);
+            oscillator.stop(now + 0.3);
+        }
+        
+        // ============================================
         // INPUT HANDLING
         // ============================================
         window.addEventListener('keydown', (e) => {
@@ -305,6 +374,11 @@
             // Restart key
             if (e.key === 'r' || e.key === 'R') {
                 restartGame();
+            }
+            
+            // Reset max score key
+            if (e.key === 'm' || e.key === 'M') {
+                resetMaxScore();
             }
         });
         
