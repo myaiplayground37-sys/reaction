@@ -28,8 +28,10 @@
             z-index: 10;
         }
         
-        #score {
+        #scoreContainer {
             margin-bottom: 15px;
+            display: flex;
+            gap: 30px;
         }
         
         #target {
@@ -100,11 +102,12 @@
     
     <!-- Game UI -->
     <div id="ui">
-        <div id="score">Score: <span id="scoreValue">0</span></div>
+        <div id="scoreContainer">
+            <div id="score">Score: <span id="scoreValue">0</span></div>
+            <div id="maxScore">Max Score: <span id="maxScoreValue">0</span></div>
+        </div>
         <div id="target">Target: <span id="targetColor">BLUE</span></div>
     </div>
-    
-    <div id="maxScore">Max Score: <span id="maxScoreValue">0</span></div>
     
     <div id="instructions">
         <p>← → or A/D to move | R to restart | M to reset max score</p>
@@ -114,7 +117,8 @@
         <h1>GAME OVER!</h1>
         <p>Wrong Color Caught!</p>
         <p id="finalScore">Final Score: 0</p>
-        <button id="restartButton">Restart Game (or press R)</button>
+        <p style="font-size: 16px; margin-top: 20px;">Press R to restart | Press M to reset max score</p>
+        <button id="restartButton">Restart Game</button>
     </div>
     
     <script>
@@ -311,6 +315,9 @@
             document.getElementById('targetColor').textContent = targetColor.name;
             const targetElement = document.getElementById('target');
             targetElement.style.backgroundColor = '#' + targetColor.value.toString(16).padStart(6, '0');
+            
+            // Update platform color to match initial target color
+            platformMaterial.color.setHex(targetColor.value);
             
             // Hide game over screen
             document.getElementById('gameOverScreen').style.display = 'none';
